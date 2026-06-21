@@ -29,7 +29,7 @@ public class ProductService {
         Product product = Product.createNew(request.name(), request.price());
         Product saved = repo.save(product);
 
-        //The transactionality should be ensured by outbox pattern
+        //The transactionality should be ensured by outbox or saga pattern
         publisher.publish(new ProductCreatedEvent(
                 saved.id(),
                 saved.name(),
