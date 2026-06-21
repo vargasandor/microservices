@@ -1,31 +1,21 @@
-Kliens          product-service          products DB        Kafka          order-service        orders DB
-  |                   |                      |               |                 |                  |
-  | POST /products    |                      |               |                 |                  |
-  |------------------>|                      |               |                 |                  |
-  |                   | create()             |               |                 |                  |
-  |                   |--------------------->|  INSERT       |                 |                  |
-  |                   |                      |-------------->|                 |                  |
-  |                   |   Product saved      |               |                 |                  |
-  |                   |<---------------------|               |                 |                  |
-  |                   | publish(ProductCreatedEvent)         |                 |                  |
-  |                   |-------------------------------------->|  topic         |                  |
-  | 201 Created       |                      |               |                 |                  |
-  |<------------------|                      |               |                 |                  |
-  |                   |                      |               |  consume        |                  |
-  |                   |                      |               |---------------->| onMessage(...)   |
-  |                   |                      |               |                 |                  |
-  |                   |                      |               |                 | (opcionális logika)
-  |                   |                      |               |                 |                  |
-  | POST /orders      |                      |               |                 |                  |
-  | (Authorization:   |                      |               |                 |                  |
-  |  Bearer <JWT>)    |                      |               |                 |                  |
-  |------------------------------------------> JWT filter    |                 |                  |
-  |                   |                      |               |                 |                  |
-  |                   |                      |               |   create()      |                  |
-  |                   |                      |               |---------------->|                  |
-  |                   |                      |               |                 | INSERT           |
-  |                   |                      |               |                 |----------------->|
-  |                   |                      |               |                 |   saved order    |
-  |                   |                      |               |                 |<-----------------|
-  | 201 Created       |                      |               |                 |                  |
-  |<-----------------------------------------|               |                 |                  |
++---------------------+          +---------------------------+          +----------------------+
+|   product-service   |          |        Kafka broker       |          |     order-service    |
+|                     |          |  topic: ProductCreated..  |          |                      |
+|  ProductService     |          |                           |          |  ProductEventConsumer|
++----------+----------+          +-------------+-------------+          +-----------+----------+
+           |                                   |                                    |
+           | new product created               |                                    |
+           |---------------------------------->|                                    |
+           | publish(ProductCreatedEvent)      |                                    |
+           |---------------------------------->|  send to topic                     |
+           |                                   |------------------------------->    |
+           |                                   |   deliver message                 |
+           |                                   |                                    |
+           |                                   |                                    |
+           |                                   |                     @KafkaListener |
+           |                                   |                                    |
+           |                                   |                                    v
+           |                                   |                        handle(ProductCreatedEvent)
+           |                                   |                        (log, cache, workflow, stb.)
+           |                                   |                                    |
+           +-----------------------------------+------------------------------------+

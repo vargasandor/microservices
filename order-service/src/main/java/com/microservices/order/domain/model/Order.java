@@ -1,13 +1,15 @@
 package com.microservices.order.domain.model;
 
+import com.microservices.order.domain.exceptions.InvalidOrderException;
+
 public record Order(Long id, Long productId, int quantity) {
 
     public Order {
         if (productId == null) {
-            throw new IllegalArgumentException("productId cannot be null");
+            throw new InvalidOrderException("productId cannot be null");
         }
         if (quantity <= 0) {
-            throw new IllegalArgumentException("quantity must be positive");
+            throw new InvalidOrderException("quantity must be positive");
         }
     }
 

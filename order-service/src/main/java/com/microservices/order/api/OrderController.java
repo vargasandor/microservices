@@ -2,6 +2,7 @@ package com.microservices.order.api;
 
 import com.microservices.order.api.dto.CreateOrderRequest;
 import com.microservices.order.api.dto.OrderResponse;
+import com.microservices.order.api.mapper.OrderMapper;
 import com.microservices.order.domain.model.Order;
 import com.microservices.order.domain.service.OrderService;
 import jakarta.validation.Valid;
@@ -16,18 +17,19 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService service;
-//Parameters checks: NotNull, etc
+    private final OrderMapper mapper;
+
     @PostMapping
     public OrderResponse create(@Valid @RequestBody CreateOrderRequest request) {
         Order order = service.create(request);
-        return new OrderResponse(order.id(), order.productId(), order.quantity());
+        return mapper.toResponse(service.create(request));
     }
 
     @GetMapping
     public List<OrderResponse> list() {
         return service.findAll()
                 .stream()
-                .map(o -> new OrderResponse(o.id(), o.productId(), o.quantity()))
+                .map(mapper::toResponse)
                 .toList();
     }
 }

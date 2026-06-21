@@ -21,6 +21,7 @@ public class ProductService {
     public Product create(CreateProductRequest request) {
 
         Objects.requireNonNull(request, "Request cannot be null");
+
         if (request.name() == null || request.name().isBlank()) {
             throw new IllegalArgumentException("Product name is required");
         }
@@ -28,6 +29,7 @@ public class ProductService {
         Product product = Product.createNew(request.name(), request.price());
         Product saved = repo.save(product);
 
+        //The transactionality should be ensured by outbox pattern
         publisher.publish(new ProductCreatedEvent(
                 saved.id(),
                 saved.name(),
